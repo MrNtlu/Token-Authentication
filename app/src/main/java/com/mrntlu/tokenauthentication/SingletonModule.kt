@@ -1,8 +1,9 @@
 package com.mrntlu.tokenauthentication
 
 import com.mrntlu.tokenauthentication.service.auth.AuthApiService
-import com.mrntlu.tokenauthentication.service.auth.AuthInterceptor
+import com.mrntlu.tokenauthentication.utils.AuthInterceptor
 import com.mrntlu.tokenauthentication.service.main.MainApiService
+import com.mrntlu.tokenauthentication.utils.AuthAuthenticator
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -19,19 +20,29 @@ class SingletonModule {
 
     @Singleton
     @Provides
-    fun provideOkHttpClient(): OkHttpClient {
+    fun provideOkHttpClient(
+        authInterceptor: AuthInterceptor,
+        authAuthenticator: AuthAuthenticator,
+    ): OkHttpClient {
         val loggingInterceptor = HttpLoggingInterceptor()
         loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
 
         return OkHttpClient.Builder()
-            .addInterceptor(AuthInterceptor(
-                "Bearer",
-                ""
-            ))
+            .addInterceptor(authInterceptor)
             .addInterceptor(loggingInterceptor)
+            .authenticator(authAuthenticator)
             .build()
     }
 
+    @Singleton
+    @Provides
+    fun provideAuthInterceptor(): AuthInterceptor =
+        AuthInterceptor()
+
+    @Singleton
+    @Provides
+    fun provideAuthAuthenticator(): AuthAuthenticator =
+        AuthAuthenticator()
 
     @Singleton
     @Provides
@@ -39,7 +50,7 @@ class SingletonModule {
         Retrofit.Builder()
             .baseUrl("https://jwt-test-api.onrender.com/api/")
             .addConverterFactory(GsonConverterFactory.create())
-//            .client(okHttpClient)
+            .client(okHttpClient)
             .build()
 
     @Singleton

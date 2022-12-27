@@ -22,5 +22,7 @@ interface AuthApiService {
     ): Response<LoginResponse>
 
     @GET("auth/refresh")
-    suspend fun refreshToken(): Response<LoginResponse>
+    suspend fun refreshToken(
+        @Header("Authorization") token: String,
+    ): Response<LoginResponse>
 }

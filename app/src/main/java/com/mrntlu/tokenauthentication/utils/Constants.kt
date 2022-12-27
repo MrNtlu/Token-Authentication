@@ -1,7 +1,6 @@
 package com.mrntlu.tokenauthentication.utils
 
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.mrntlu.tokenauthentication.models.ErrorResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -13,7 +12,7 @@ import retrofit2.Response
 fun<T> toResultFlow(call: suspend () -> Response<T>): Flow<ApiResponse<T>> = flow {
     emit(ApiResponse.Loading)
 
-    withTimeoutOrNull(7500L) {
+    withTimeoutOrNull(20000L) {
         val response = call()
 
         try {
@@ -25,11 +24,11 @@ fun<T> toResultFlow(call: suspend () -> Response<T>): Flow<ApiResponse<T>> = flo
                 response.errorBody()?.let { error ->
                     error.close()
                     val parsedError: ErrorResponse = Gson().fromJson(error.charStream(), ErrorResponse::class.java)
-                    emit(ApiResponse.Failure("Code: ${parsedError.code}, ${parsedError.message}"))
+                    emit(ApiResponse.Failure(parsedError.message, parsedError.code))
                 }
             }
         } catch (e: Exception) {
-            emit(ApiResponse.Failure(e.message ?: e.toString()))
+            emit(ApiResponse.Failure(e.message ?: e.toString(), 400))
         }
-    } ?: emit(ApiResponse.Failure("Timeout! Please try again."))
+    } ?: emit(ApiResponse.Failure("Timeout! Please try again.", 408))
 }.flowOn(Dispatchers.IO)

@@ -21,10 +21,15 @@ class MainFragment : Fragment() {
 
     private lateinit var token: String
 
+    companion object {
+        var staticToken: String? = null //TODO For testing
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (arguments?.getString("token") != null) {
             token = requireArguments().getString("token")!!
+            staticToken = token
         }
     }
 
@@ -40,7 +45,7 @@ class MainFragment : Fragment() {
         val mainTV = view.findViewById<TextView>(R.id.infoTV)
         viewModel.userInfoResponse.observe(viewLifecycleOwner) {
             mainTV.text = when(it) {
-                is ApiResponse.Failure -> it.errorMessage
+                is ApiResponse.Failure -> "Code: ${it.code}, ${it.errorMessage}"
                 ApiResponse.Idle -> ""
                 ApiResponse.Loading -> "Loading"
                 is ApiResponse.Success -> "ID: ${it.data.data._id}\nMail: ${it.data.data.email_address}"

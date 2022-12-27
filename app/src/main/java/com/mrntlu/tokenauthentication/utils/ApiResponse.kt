@@ -10,6 +10,7 @@ sealed class ApiResponse<out T> {
     ): ApiResponse<T>()
 
     data class Failure(
-        val errorMessage: String
+        val errorMessage: String,
+        val code: Int,
     ): ApiResponse<Nothing>()
 }
