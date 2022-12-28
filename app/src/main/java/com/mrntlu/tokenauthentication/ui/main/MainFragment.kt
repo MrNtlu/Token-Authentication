@@ -20,7 +20,6 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainFragment : Fragment() {
-
     private val viewModel: MainViewModel by viewModels()
     private val tokenViewModel: TokenViewModel by activityViewModels()
 
@@ -48,7 +47,7 @@ class MainFragment : Fragment() {
             mainTV.text = when(it) {
                 is ApiResponse.Failure -> "Code: ${it.code}, ${it.errorMessage}"
                 ApiResponse.Loading -> "Loading"
-                is ApiResponse.Success -> "ID: ${it.data.data._id}\nMail: ${it.data.data.email_address}\n\nToken: $token"
+                is ApiResponse.Success -> "ID: ${it.data.userInfo._id}\nMail: ${it.data.userInfo.email_address}\n\nToken: $token"
             }
         }
 

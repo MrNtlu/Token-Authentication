@@ -21,7 +21,6 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class LoginFragment : Fragment() {
-
     private val viewModel: AuthViewModel by viewModels()
     private val tokenViewModel: TokenViewModel by activityViewModels()
 
@@ -37,13 +36,13 @@ class LoginFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         navController = Navigation.findNavController(view)
+        val loginTV = view.findViewById<TextView>(R.id.loginTV)
 
         tokenViewModel.token.observe(viewLifecycleOwner) { token ->
             if (token != null)
                 navController.navigate(R.id.action_loginFragment_to_main_nav_graph)
         }
 
-        val loginTV = view.findViewById<TextView>(R.id.loginTV)
         viewModel.loginResponse.observe(viewLifecycleOwner) {
             when(it) {
                 is ApiResponse.Failure -> loginTV.text = it.errorMessage
