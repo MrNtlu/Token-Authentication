@@ -7,31 +7,25 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.navigation.NavController
+import androidx.navigation.Navigation
 import com.mrntlu.tokenauthentication.R
 import com.mrntlu.tokenauthentication.utils.ApiResponse
 import com.mrntlu.tokenauthentication.viewmodels.CoroutinesErrorHandler
 import com.mrntlu.tokenauthentication.viewmodels.MainViewModel
+import com.mrntlu.tokenauthentication.viewmodels.TokenViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainFragment : Fragment() {
 
     private val viewModel: MainViewModel by viewModels()
+    private val tokenViewModel: TokenViewModel by activityViewModels()
 
-    private lateinit var token: String
-
-    companion object {
-        var staticToken: String? = null //TODO For testing
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        if (arguments?.getString("token") != null) {
-            token = requireArguments().getString("token")!!
-            staticToken = token
-        }
-    }
+    private lateinit var navController: NavController
+    private var token: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -41,14 +35,20 @@ class MainFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        navController = Navigation.findNavController(view)
+
+        tokenViewModel.token.observe(viewLifecycleOwner) { token ->
+            this.token = token
+            if (token == null)
+                navController.navigate(R.id.action_global_loginFragment)
+        }
 
         val mainTV = view.findViewById<TextView>(R.id.infoTV)
         viewModel.userInfoResponse.observe(viewLifecycleOwner) {
             mainTV.text = when(it) {
                 is ApiResponse.Failure -> "Code: ${it.code}, ${it.errorMessage}"
-                ApiResponse.Idle -> ""
                 ApiResponse.Loading -> "Loading"
-                is ApiResponse.Success -> "ID: ${it.data.data._id}\nMail: ${it.data.data.email_address}"
+                is ApiResponse.Success -> "ID: ${it.data.data._id}\nMail: ${it.data.data.email_address}\n\nToken: $token"
             }
         }
 
@@ -57,8 +57,11 @@ class MainFragment : Fragment() {
                 override fun onError(message: String) {
                     mainTV.text = "Error! $message"
                 }
-
             })
+        }
+
+        view.findViewById<Button>(R.id.logoutButton).setOnClickListener {
+            tokenViewModel.deleteToken()
         }
     }
 }

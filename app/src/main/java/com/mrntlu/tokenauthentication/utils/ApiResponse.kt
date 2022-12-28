@@ -1,8 +1,6 @@
 package com.mrntlu.tokenauthentication.utils
 
 sealed class ApiResponse<out T> {
-    object Idle: ApiResponse<Nothing>()
-
     object Loading: ApiResponse<Nothing>()
 
     data class Success<out T>(

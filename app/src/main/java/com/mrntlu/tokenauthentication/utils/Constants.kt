@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withTimeoutOrNull
 import retrofit2.Response
 
-fun<T> toResultFlow(call: suspend () -> Response<T>): Flow<ApiResponse<T>> = flow {
+fun<T> apiRequestFlow(call: suspend () -> Response<T>): Flow<ApiResponse<T>> = flow {
     emit(ApiResponse.Loading)
 
     withTimeoutOrNull(20000L) {

@@ -29,4 +29,8 @@
             app:popUpToInclusive="true" />
     </fragment>
     <include app:graph="@navigation/main_nav_graph" />
+    <action
+        android:id="@+id/action_global_loginFragment"
+        app:destination="@id/loginFragment"
+        app:popUpToInclusive="true" />
 </navigation>

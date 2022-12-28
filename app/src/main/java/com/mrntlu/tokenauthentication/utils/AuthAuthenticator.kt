@@ -2,7 +2,7 @@ package com.mrntlu.tokenauthentication.utils
 
 import com.mrntlu.tokenauthentication.models.LoginResponse
 import com.mrntlu.tokenauthentication.service.auth.AuthApiService
-import com.mrntlu.tokenauthentication.ui.main.MainFragment
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import okhttp3.*
 import okhttp3.logging.HttpLoggingInterceptor
@@ -10,19 +10,23 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Inject
 
-class AuthAuthenticator @Inject constructor(): Authenticator {
+class AuthAuthenticator @Inject constructor(
+    private val tokenManager: TokenManager,
+): Authenticator {
+
     override fun authenticate(route: Route?, response: Response): Request? {
+        val token = runBlocking {
+            tokenManager.getToken().first()
+        }
         return runBlocking {
-            val token = MainFragment.staticToken
             val newToken = getNewToken(token)
 
-            //Couldn't refresh the token, so restart the login process
-            if (!newToken.isSuccessful || newToken.body() == null) {
-                TODO("Restart login process")
+            if (!newToken.isSuccessful || newToken.body() == null) { //Couldn't refresh the token, so restart the login process
+                tokenManager.deleteToken()
             }
 
             newToken.body()?.let {
-                MainFragment.staticToken = it.token
+                tokenManager.saveToken(it.token)
                 response.request.newBuilder()
                     .header("Authorization", "Bearer ${it.token}")
                     .build()
