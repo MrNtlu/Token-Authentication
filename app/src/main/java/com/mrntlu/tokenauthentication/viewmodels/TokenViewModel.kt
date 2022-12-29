@@ -5,8 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mrntlu.tokenauthentication.utils.TokenManager
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -15,39 +16,26 @@ class TokenViewModel @Inject constructor(
 ): ViewModel() {
 
     val token = MutableLiveData<String?>()
-    private var mJob: Job? = null
 
     init {
-        mJob = viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             tokenManager.getToken().collect {
-                token.value = it
+                withContext(Dispatchers.Main) {
+                    token.value = it
+                }
             }
         }
     }
 
     fun saveToken(token: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             tokenManager.saveToken(token)
         }
     }
 
     fun deleteToken() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             tokenManager.deleteToken()
         }
-    }
-
-    private fun removeObservables() {
-        mJob?.let {
-            if (it.isActive) {
-                it.cancel()
-            }
-        }
-        mJob = null
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        removeObservables()
     }
 }
